@@ -11,6 +11,8 @@ struct Cell {
 	int xEnd;
 	int yEnd;
 	int checker;
+	bool isChosen = false;
+	bool isDead = true;
 };
 
 struct Checker {
@@ -30,9 +32,11 @@ Checker checkers[8][8];
 // 1 - текущее положение курсора
 // 2 - возможные ходы(обнуляется, если отменяем ход)
 // 3 - курсор на клетке с возможным ходом
+// 5 - выбранная клетка
 int field[8][8];
 
 
+int turn = 1;
 
 
 
@@ -49,7 +53,7 @@ enum ConsoleColors {
 
 COORD dot;
 
-HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron;
+HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron, darkGreen;
 
 void drawCursor() {
 	for (int i = 0; i < 8; i++) {
@@ -65,7 +69,17 @@ void drawCursor() {
 			}
 			else if (field[i][j] == 3) {
 				Rectangle(silver, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
-				RoundRect(iron, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				RoundRect(darkGreen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+			}
+
+			else if (cells[i][j].isChosen) {
+				Rectangle(darkGreen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
+				if (cells[i][j].checker == 1) {
+					RoundRect(brown, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
+				else if (cells[i][j].checker == 2) {
+					RoundRect(white, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
 			}
 
 		}
@@ -81,18 +95,21 @@ void draw() {
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
 			if ((i + j) % 2 == 0) {
+				if (cells[i][j].isDead) {
+					cells[i][j].checker = 0;
+				}
 				Rectangle(yellow, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
 				if (field[i][j] == 2) {
 					RoundRect(iron, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
-				
+
 			}
 			else {
 				Rectangle(black, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
 				if (field[i][j] == 2) {
-					RoundRect(iron, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+					RoundRect(darkGreen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
-				
+
 				if (cells[i][j].checker == 1) {
 					RoundRect(brown, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
@@ -100,14 +117,14 @@ void draw() {
 					RoundRect(white, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
 			}
-			
+
 		}
 	}
 }
 
 
-void getPossibleMoves(int curPositionX, int curPositionY) {
-	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) < 7) and (cells[curPositionY + 1][curPositionX - 1].checker == 0)) {
+void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
+	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) <= 7) and (cells[curPositionY + 1][curPositionX - 1].checker == 0)) {
 		field[curPositionY + 1][curPositionX - 1] = 2;
 	}
 
@@ -126,30 +143,38 @@ void getPossibleMoves(int curPositionX, int curPositionY) {
 
 	// Через шашку
 	if ((curPositionX - 2) >= 0 and ((curPositionY + 2) <= 7)
-		and (cells[curPositionY + 1][curPositionX - 1].checker != 0) 
+		and (cells[curPositionY + 1][curPositionX - 1].checker == turn)
+		and (turn > 0)
 		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)) {
+
 		field[curPositionY + 2][curPositionX - 2] = 2;
 	}
 
 	if ((curPositionX + 2) <= 7 and ((curPositionY - 2) >= 0)
-		and (cells[curPositionY - 1][curPositionX + 1].checker != 0)
+		and (cells[curPositionY - 1][curPositionX + 1].checker == turn)
+		and (turn > 0)
 		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)) {
+
 		field[curPositionY - 2][curPositionX + 2] = 2;
 	}
 
 	if ((curPositionX + 2) <= 7 and ((curPositionY + 2) <= 7)
-		and (cells[curPositionY + 1][curPositionX + 1].checker != 0)
+		and (cells[curPositionY + 1][curPositionX + 1].checker == turn)
+		and (turn > 0)
 		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)) {
+
 		field[curPositionY + 2][curPositionX + 2] = 2;
 	}
 
 	if ((curPositionX - 2) >= 0 and ((curPositionY - 2) >= 0)
-		and (cells[curPositionY - 1][curPositionX - 1].checker != 0)
+		and (cells[curPositionY - 1][curPositionX - 1].checker == turn)
+		and (turn > 0)
 		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)) {
+
 		field[curPositionY - 2][curPositionX - 2] = 2;
 	}
 
-	
+
 }
 
 
@@ -162,11 +187,12 @@ void move() {
 	int chosenX = curPositionX;
 	int chosenY = curPositionY;
 	bool entered = false;
+
 	while (TRUE) {
 		// ВНИЗ - 80, ВВЕРХ - 72, ВПРАВО - 77, ВЛЕВО - 75, ENTER - 13, ESC - 27.
 		int curMove = _getch();
-		
-		
+
+
 
 
 		if (curMove == 80) {
@@ -175,6 +201,7 @@ void move() {
 				for (int j = 0; j < 8; j++) {
 					if (field[i][j] == 1 or field[i][j] == 3) {
 						if (i < 7) {
+
 							field[i][j] -= 1;
 							field[i + 1][j] += 1;
 							curPositionX = j;
@@ -191,9 +218,9 @@ void move() {
 
 			draw();
 			drawCursor();
-			
-			
-			
+
+
+
 		}
 
 		if (curMove == 72) {
@@ -265,27 +292,29 @@ void move() {
 					break;
 				}
 			}
-			
-			
-				draw();
-				drawCursor();
+
+
+			draw();
+			drawCursor();
 		}
 
 		if (curMove == 13) {
-			
-			if (!entered and cells[curPositionY][curPositionX].checker) {
+
+			if (!entered and cells[curPositionY][curPositionX].checker == turn) {
 				entered = true;
 				chosenX = curPositionX;
 				chosenY = curPositionY;
-				getPossibleMoves(curPositionX, curPositionY);
+				cells[chosenY][chosenX].isChosen = true;
+				getPossibleMoves(curPositionX, curPositionY, turn);
 				draw();
 				drawCursor();
-				
+
 			}
 
 			else if (entered) {
 				if ((curPositionX == chosenX) and (curPositionY == chosenY)) {
 					entered = false;
+					cells[chosenY][chosenX].isChosen = false;
 					for (int i = 0; i < 8; i++) {
 						for (int j = 0; j < 8; j++) {
 							field[i][j] = 0;
@@ -296,27 +325,39 @@ void move() {
 					draw();
 					drawCursor();
 				}
-				
+
 				else if (field[curPositionY][curPositionX] == 3) {
-		
-					cout << curPositionY << endl << curPositionX << endl;
-					cout << chosenY << endl << chosenX;
+
+					int deadMoveY = (chosenY - curPositionY) / 2;
+					int deadMoveX = (chosenX - curPositionX) / 2;
+
+					if (deadMoveY != 0 and deadMoveX != 0) {
+						cells[chosenY - deadMoveY][chosenX - deadMoveX].checker = 0;
+					}
 					cells[curPositionY][curPositionX].checker = cells[chosenY][chosenX].checker;
 					cells[chosenY][chosenX].checker = 0;
 					entered = false;
+					cells[chosenY][chosenX].isChosen = false;
 					for (int i = 0; i < 8; i++) {
 						for (int j = 0; j < 8; j++) {
 							field[i][j] = 0;
 						}
 					}
 					field[curPositionY][curPositionX] = 1;
+
+					if (turn == 1) {
+						turn = 2;
+					}
+					else if (turn == 2) {
+						turn = 1;
+					}
 					draw();
 					drawCursor();
 				}
-				
-				
 
-				
+
+
+
 			}
 
 		}
@@ -327,27 +368,27 @@ void move() {
 			break;
 		}
 	}
-	
+
 
 }
 
 int main() {
-	
+
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	
+
 	HWND hcon = GetConsoleWindow();
 	RECT rect;
 	GetWindowRect(hcon, &rect);
 	MoveWindow(hcon, rect.left, rect.top, 800, 800, TRUE);
-	
-	
+
+
 	cyan = GetDC(GetConsoleWindow());
 	SelectObject(cyan, CreateSolidBrush(RGB(0, 170, 170)));
 	white = GetDC(GetConsoleWindow());
 	SelectObject(white, CreateSolidBrush(RGB(255, 255, 255)));
 	black = GetDC(GetConsoleWindow());
 	SelectObject(black, CreateSolidBrush(RGB(0, 0, 0)));
-	
+
 	grey = GetDC(GetConsoleWindow());
 	SelectObject(grey, CreateSolidBrush(RGB(211, 211, 211)));
 
@@ -367,6 +408,10 @@ int main() {
 
 	iron = GetDC(GetConsoleWindow());
 	SelectObject(iron, CreateSolidBrush(RGB(218, 223, 225)));
+
+	darkGreen = GetDC(GetConsoleWindow());
+	SelectObject(darkGreen, CreateSolidBrush(RGB(48, 130, 81)));
+
 
 	// Заполнение координат и цветов для клеток
 	for (int i = 0; i < 8; i++) {
@@ -408,7 +453,7 @@ int main() {
 		}
 	}
 
-	
+
 
 	draw();
 	drawCursor();
@@ -416,7 +461,7 @@ int main() {
 	while (TRUE) {
 
 		move();
-		
+
 	}
 }
 
