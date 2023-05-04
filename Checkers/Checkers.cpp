@@ -24,6 +24,12 @@ struct Checker {
 
 Cell cells[8][8];
 Checker checkers[8][8];
+
+// Используется для отрисовки
+// 0 - пустая клетка с шашкой или без
+// 1 - текущее положение курсора
+// 2 - возможные ходы(обнуляется, если отменяем ход)
+// 3 - курсор на клетке с возможным ходом
 int field[8][8];
 
 
@@ -43,7 +49,7 @@ enum ConsoleColors {
 
 COORD dot;
 
-HDC cyan, white, black, grey, blue, red, yellow, brown, silver;
+HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron;
 
 void drawCursor() {
 	for (int i = 0; i < 8; i++) {
@@ -56,6 +62,10 @@ void drawCursor() {
 				else if (cells[i][j].checker == 2) {
 					RoundRect(white, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
+			}
+			else if (field[i][j] == 3) {
+				Rectangle(silver, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
+				RoundRect(iron, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 			}
 
 		}
@@ -72,10 +82,16 @@ void draw() {
 		for (int j = 0; j < 8; j++) {
 			if ((i + j) % 2 == 0) {
 				Rectangle(yellow, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
+				if (field[i][j] == 2) {
+					RoundRect(iron, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
 				
 			}
 			else {
 				Rectangle(black, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
+				if (field[i][j] == 2) {
+					RoundRect(iron, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
 				
 				if (cells[i][j].checker == 1) {
 					RoundRect(brown, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
@@ -90,19 +106,79 @@ void draw() {
 }
 
 
+void getPossibleMoves(int curPositionX, int curPositionY) {
+	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) < 7) and (cells[curPositionY + 1][curPositionX - 1].checker == 0)) {
+		field[curPositionY + 1][curPositionX - 1] = 2;
+	}
+
+	if ((curPositionX + 1) <= 7 and ((curPositionY - 1) >= 0) and (cells[curPositionY - 1][curPositionX + 1].checker == 0)) {
+		field[curPositionY - 1][curPositionX + 1] = 2;
+	}
+
+	if ((curPositionX + 1) <= 7 and ((curPositionY + 1) <= 7) and (cells[curPositionY + 1][curPositionX + 1].checker == 0)) {
+		field[curPositionY + 1][curPositionX + 1] = 2;
+	}
+
+	if ((curPositionX - 1) >= 0 and ((curPositionY - 1) >= 0) and (cells[curPositionY - 1][curPositionX - 1].checker == 0)) {
+		field[curPositionY - 1][curPositionX - 1] = 2;
+	}
+
+
+	// Через шашку
+	if ((curPositionX - 2) >= 0 and ((curPositionY + 2) <= 7)
+		and (cells[curPositionY + 1][curPositionX - 1].checker != 0) 
+		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)) {
+		field[curPositionY + 2][curPositionX - 2] = 2;
+	}
+
+	if ((curPositionX + 2) <= 7 and ((curPositionY - 2) >= 0)
+		and (cells[curPositionY - 1][curPositionX + 1].checker != 0)
+		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)) {
+		field[curPositionY - 2][curPositionX + 2] = 2;
+	}
+
+	if ((curPositionX + 2) <= 7 and ((curPositionY + 2) <= 7)
+		and (cells[curPositionY + 1][curPositionX + 1].checker != 0)
+		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)) {
+		field[curPositionY + 2][curPositionX + 2] = 2;
+	}
+
+	if ((curPositionX - 2) >= 0 and ((curPositionY - 2) >= 0)
+		and (cells[curPositionY - 1][curPositionX - 1].checker != 0)
+		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)) {
+		field[curPositionY - 2][curPositionX - 2] = 2;
+	}
+
+	
+}
+
+
 void move() {
 
+
+
+	int curPositionX = 0;
+	int curPositionY = 0;
+	int chosenX = curPositionX;
+	int chosenY = curPositionY;
+	bool entered = false;
 	while (TRUE) {
 		// ВНИЗ - 80, ВВЕРХ - 72, ВПРАВО - 77, ВЛЕВО - 75, ENTER - 13, ESC - 27.
 		int curMove = _getch();
+		
+		
+
+
 		if (curMove == 80) {
 			bool flag = false;
 			for (int i = 0; i < 8; i++) {
 				for (int j = 0; j < 8; j++) {
-					if (field[i][j] == 1) {
+					if (field[i][j] == 1 or field[i][j] == 3) {
 						if (i < 7) {
-							field[i][j] = 0;
-							field[i + 1][j] = 1;
+							field[i][j] -= 1;
+							field[i + 1][j] += 1;
+							curPositionX = j;
+							curPositionY = i + 1;
 						}
 						flag = true;
 						break;
@@ -115,16 +191,21 @@ void move() {
 
 			draw();
 			drawCursor();
+			
+			
+			
 		}
 
 		if (curMove == 72) {
 			bool flag = false;
 			for (int i = 0; i < 8; i++) {
 				for (int j = 0; j < 8; j++) {
-					if (field[i][j] == 1) {
+					if (field[i][j] == 1 or field[i][j] == 3) {
 						if (i > 0) {
-							field[i][j] = 0;
-							field[i - 1][j] = 1;
+							field[i][j] -= 1;
+							field[i - 1][j] += 1;
+							curPositionX = j;
+							curPositionY = i - 1;
 						}
 						flag = true;
 						break;
@@ -145,10 +226,12 @@ void move() {
 			bool flag = false;
 			for (int i = 0; i < 8; i++) {
 				for (int j = 0; j < 8; j++) {
-					if (field[i][j] == 1) {
+					if (field[i][j] == 1 or field[i][j] == 3) {
 						if (j < 7) {
-							field[i][j] = 0;
-							field[i][j + 1] = 1;
+							field[i][j] -= 1;
+							field[i][j + 1] += 1;
+							curPositionX = j + 1;
+							curPositionY = i;
 						}
 						flag = true;
 						break;
@@ -167,10 +250,12 @@ void move() {
 			bool flag = false;
 			for (int i = 0; i < 8; i++) {
 				for (int j = 0; j < 8; j++) {
-					if (field[i][j] == 1) {
+					if (field[i][j] == 1 or field[i][j] == 3) {
 						if (j > 0) {
-							field[i][j] = 0;
-							field[i][j - 1] = 1;
+							field[i][j] -= 1;
+							field[i][j - 1] += 1;
+							curPositionX = j - 1;
+							curPositionY = i;
 						}
 						flag = true;
 						break;
@@ -180,12 +265,59 @@ void move() {
 					break;
 				}
 			}
-
-			draw();
-			drawCursor();
+			
+			
+				draw();
+				drawCursor();
 		}
 
 		if (curMove == 13) {
+			
+			if (!entered and cells[curPositionY][curPositionX].checker) {
+				entered = true;
+				chosenX = curPositionX;
+				chosenY = curPositionY;
+				getPossibleMoves(curPositionX, curPositionY);
+				draw();
+				drawCursor();
+				
+			}
+
+			else if (entered) {
+				if ((curPositionX == chosenX) and (curPositionY == chosenY)) {
+					entered = false;
+					for (int i = 0; i < 8; i++) {
+						for (int j = 0; j < 8; j++) {
+							field[i][j] = 0;
+						}
+					}
+					field[curPositionY][curPositionX] = 1;
+
+					draw();
+					drawCursor();
+				}
+				
+				else if (field[curPositionY][curPositionX] == 3) {
+		
+					cout << curPositionY << endl << curPositionX << endl;
+					cout << chosenY << endl << chosenX;
+					cells[curPositionY][curPositionX].checker = cells[chosenY][chosenX].checker;
+					cells[chosenY][chosenX].checker = 0;
+					entered = false;
+					for (int i = 0; i < 8; i++) {
+						for (int j = 0; j < 8; j++) {
+							field[i][j] = 0;
+						}
+					}
+					field[curPositionY][curPositionX] = 1;
+					draw();
+					drawCursor();
+				}
+				
+				
+
+				
+			}
 
 		}
 
@@ -232,6 +364,9 @@ int main() {
 
 	brown = GetDC(GetConsoleWindow());
 	SelectObject(brown, CreateSolidBrush(RGB(115, 74, 18)));
+
+	iron = GetDC(GetConsoleWindow());
+	SelectObject(iron, CreateSolidBrush(RGB(218, 223, 225)));
 
 	// Заполнение координат и цветов для клеток
 	for (int i = 0; i < 8; i++) {
@@ -284,3 +419,13 @@ int main() {
 		
 	}
 }
+
+// оценка ходов
+// 0 - обычный ход
+// 1 - ход на край доски
+// 2 - защита от взятия
+// 5 - взятие, суммирование при взятии нескольких шашек
+// 10 - получение дамки
+// 20 - взятие дамки
+// 
+// 
