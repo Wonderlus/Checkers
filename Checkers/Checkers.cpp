@@ -36,7 +36,7 @@ Checker checkers[8][8];
 int field[8][8];
 
 
-int turn = 1;
+int turn = 2;
 
 
 
@@ -54,6 +54,8 @@ enum ConsoleColors {
 COORD dot;
 
 HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron, darkGreen;
+
+
 
 void drawCursor() {
 	for (int i = 0; i < 8; i++) {
@@ -124,52 +126,68 @@ void draw() {
 
 
 void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
-	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) <= 7) and (cells[curPositionY + 1][curPositionX - 1].checker == 0)) {
+	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) <= 7)
+		and (cells[curPositionY + 1][curPositionX - 1].checker == 0)
+		and (turn % 2 == 1)) {
 		field[curPositionY + 1][curPositionX - 1] = 2;
 	}
 
-	if ((curPositionX + 1) <= 7 and ((curPositionY - 1) >= 0) and (cells[curPositionY - 1][curPositionX + 1].checker == 0)) {
+	if ((curPositionX + 1) <= 7 and ((curPositionY - 1) >= 0) 
+		and (cells[curPositionY - 1][curPositionX + 1].checker == 0)
+		and (turn % 2 == 0)) {
 		field[curPositionY - 1][curPositionX + 1] = 2;
 	}
 
-	if ((curPositionX + 1) <= 7 and ((curPositionY + 1) <= 7) and (cells[curPositionY + 1][curPositionX + 1].checker == 0)) {
+	if ((curPositionX + 1) <= 7 and ((curPositionY + 1) <= 7) 
+		and (cells[curPositionY + 1][curPositionX + 1].checker == 0)
+		and (turn % 2 == 1)) {
 		field[curPositionY + 1][curPositionX + 1] = 2;
 	}
 
-	if ((curPositionX - 1) >= 0 and ((curPositionY - 1) >= 0) and (cells[curPositionY - 1][curPositionX - 1].checker == 0)) {
+	if ((curPositionX - 1) >= 0 and ((curPositionY - 1) >= 0) 
+		and (cells[curPositionY - 1][curPositionX - 1].checker == 0)
+		and (turn % 2 == 0)) {
 		field[curPositionY - 1][curPositionX - 1] = 2;
 	}
 
 
 	// Через шашку
 	if ((curPositionX - 2) >= 0 and ((curPositionY + 2) <= 7)
-		and (cells[curPositionY + 1][curPositionX - 1].checker == turn)
+		and (cells[curPositionY + 1][curPositionX - 1].checker != turn)
+		and (cells[curPositionY + 1][curPositionX - 1].checker > 0)
 		and (turn > 0)
-		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)) {
+		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)
+		) {
 
 		field[curPositionY + 2][curPositionX - 2] = 2;
 	}
 
 	if ((curPositionX + 2) <= 7 and ((curPositionY - 2) >= 0)
-		and (cells[curPositionY - 1][curPositionX + 1].checker == turn)
+		and (cells[curPositionY - 1][curPositionX + 1].checker != turn)
+		and (cells[curPositionY - 1][curPositionX + 1].checker > 0)
 		and (turn > 0)
-		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)) {
+		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)
+		) {
 
 		field[curPositionY - 2][curPositionX + 2] = 2;
 	}
 
 	if ((curPositionX + 2) <= 7 and ((curPositionY + 2) <= 7)
-		and (cells[curPositionY + 1][curPositionX + 1].checker == turn)
+		and (cells[curPositionY + 1][curPositionX + 1].checker != turn)
+		and (cells[curPositionY + 1][curPositionX + 1].checker > 0)
 		and (turn > 0)
-		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)) {
+		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)
+		) {
 
 		field[curPositionY + 2][curPositionX + 2] = 2;
 	}
 
 	if ((curPositionX - 2) >= 0 and ((curPositionY - 2) >= 0)
-		and (cells[curPositionY - 1][curPositionX - 1].checker == turn)
+		and (cells[curPositionY - 1][curPositionX - 1].checker != turn)
+		and (cells[curPositionY - 1][curPositionX - 1].checker > 0)
 		and (turn > 0)
-		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)) {
+		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)
+		) {
 
 		field[curPositionY - 2][curPositionX - 2] = 2;
 	}
@@ -177,6 +195,18 @@ void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
 
 }
 
+
+bool checkMoves() {
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if (field[i][j] == 2) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 
 void move() {
 
@@ -345,6 +375,7 @@ void move() {
 					}
 					field[curPositionY][curPositionX] = 1;
 
+					
 					if (turn == 1) {
 						turn = 2;
 					}
