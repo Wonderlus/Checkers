@@ -94,6 +94,7 @@ void draw() {
 	GetConsoleCursorInfo(hConsole, &CursorInfo);
 	CursorInfo.bVisible = FALSE;
 	SetConsoleCursorInfo(hConsole, &CursorInfo);
+
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
 			if ((i + j) % 2 == 0) {
@@ -125,7 +126,52 @@ void draw() {
 }
 
 
+bool getDeadMoves(int curPositionX, int curPositionY, int turn) {
+	bool flag = false;
+	if ((curPositionX - 2) >= 0 and ((curPositionY + 2) <= 7)
+		and (cells[curPositionY + 1][curPositionX - 1].checker != turn)
+		and (cells[curPositionY + 1][curPositionX - 1].checker > 0)
+		and (turn > 0)
+		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)
+		) {
+		flag = true;
+		field[curPositionY + 2][curPositionX - 2] = 2;
+	}
+
+	if ((curPositionX + 2) <= 7 and ((curPositionY - 2) >= 0)
+		and (cells[curPositionY - 1][curPositionX + 1].checker != turn)
+		and (cells[curPositionY - 1][curPositionX + 1].checker > 0)
+		and (turn > 0)
+		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)
+		) {
+		flag = true;
+		field[curPositionY - 2][curPositionX + 2] = 2;
+	}
+
+	if ((curPositionX + 2) <= 7 and ((curPositionY + 2) <= 7)
+		and (cells[curPositionY + 1][curPositionX + 1].checker != turn)
+		and (cells[curPositionY + 1][curPositionX + 1].checker > 0)
+		and (turn > 0)
+		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)
+		) {
+		flag = true;
+		field[curPositionY + 2][curPositionX + 2] = 2;
+	}
+
+	if ((curPositionX - 2) >= 0 and ((curPositionY - 2) >= 0)
+		and (cells[curPositionY - 1][curPositionX - 1].checker != turn)
+		and (cells[curPositionY - 1][curPositionX - 1].checker > 0)
+		and (turn > 0)
+		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)
+		) {
+		flag = true;
+		field[curPositionY - 2][curPositionX - 2] = 2;
+	}
+	return flag;
+}
+
 void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
+	
 	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) <= 7)
 		and (cells[curPositionY + 1][curPositionX - 1].checker == 0)
 		and (turn % 2 == 1)) {
@@ -151,62 +197,13 @@ void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
 	}
 
 
-	// Через шашку
-	if ((curPositionX - 2) >= 0 and ((curPositionY + 2) <= 7)
-		and (cells[curPositionY + 1][curPositionX - 1].checker != turn)
-		and (cells[curPositionY + 1][curPositionX - 1].checker > 0)
-		and (turn > 0)
-		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)
-		) {
+	// Через шашку - вынести в отдельную функцию
+	
 
-		field[curPositionY + 2][curPositionX - 2] = 2;
-	}
-
-	if ((curPositionX + 2) <= 7 and ((curPositionY - 2) >= 0)
-		and (cells[curPositionY - 1][curPositionX + 1].checker != turn)
-		and (cells[curPositionY - 1][curPositionX + 1].checker > 0)
-		and (turn > 0)
-		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)
-		) {
-
-		field[curPositionY - 2][curPositionX + 2] = 2;
-	}
-
-	if ((curPositionX + 2) <= 7 and ((curPositionY + 2) <= 7)
-		and (cells[curPositionY + 1][curPositionX + 1].checker != turn)
-		and (cells[curPositionY + 1][curPositionX + 1].checker > 0)
-		and (turn > 0)
-		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)
-		) {
-
-		field[curPositionY + 2][curPositionX + 2] = 2;
-	}
-
-	if ((curPositionX - 2) >= 0 and ((curPositionY - 2) >= 0)
-		and (cells[curPositionY - 1][curPositionX - 1].checker != turn)
-		and (cells[curPositionY - 1][curPositionX - 1].checker > 0)
-		and (turn > 0)
-		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)
-		) {
-
-		field[curPositionY - 2][curPositionX - 2] = 2;
-	}
-
-
+	getDeadMoves(curPositionX, curPositionY, turn);
 }
 
 
-bool checkMoves() {
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
-			if (field[i][j] == 2) {
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
 
 void move() {
 
@@ -374,16 +371,40 @@ void move() {
 						}
 					}
 					field[curPositionY][curPositionX] = 1;
+					
+					if (deadMoveX != 0 and deadMoveY != 0) {
+						if (getDeadMoves(curPositionX, curPositionY, turn)) {
+							entered = true;
+							chosenX = curPositionX;
+							chosenY = curPositionY;
+							cells[chosenY][chosenX].isChosen = true;
+							
+
+						}
+
+						else {
+							if (turn == 1) {
+								turn = 2;
+							}
+							else if (turn == 2) {
+								turn = 1;
+							}
+						}
+					}
+					
+					else {
+						if (turn == 1) {
+							turn = 2;
+						}
+						else if (turn == 2) {
+							turn = 1;
+						}
+					}
 
 					
-					if (turn == 1) {
-						turn = 2;
-					}
-					else if (turn == 2) {
-						turn = 1;
-					}
 					draw();
 					drawCursor();
+					
 				}
 
 
@@ -488,6 +509,7 @@ int main() {
 
 	draw();
 	drawCursor();
+
 
 	while (TRUE) {
 
