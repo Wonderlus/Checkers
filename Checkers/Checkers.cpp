@@ -13,6 +13,7 @@ struct Cell {
 	int checker;
 	bool isChosen = false;
 	bool isDead = true;
+
 };
 
 struct Checker {
@@ -21,7 +22,6 @@ struct Checker {
 	int xEnd;
 	int yEnd;
 	int color;
-	bool isQuinn;
 };
 
 Cell cells[8][8];
@@ -53,7 +53,7 @@ enum ConsoleColors {
 
 COORD dot;
 
-HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron, darkGreen;
+HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron, darkGreen, whiteQueen, blackQueen;
 
 
 
@@ -65,9 +65,18 @@ void drawCursor() {
 				if (cells[i][j].checker == 1) {
 					RoundRect(brown, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
+				else if (cells[i][j].checker == 3) {
+					RoundRect(blackQueen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
+
 				else if (cells[i][j].checker == 2) {
 					RoundRect(white, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
+
+				else if (cells[i][j].checker == 4) {
+					RoundRect(whiteQueen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
+
 			}
 			else if (field[i][j] == 3) {
 				Rectangle(silver, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
@@ -79,14 +88,23 @@ void drawCursor() {
 				if (cells[i][j].checker == 1) {
 					RoundRect(brown, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
+				else if (cells[i][j].checker == 3) {
+					RoundRect(blackQueen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
+
 				else if (cells[i][j].checker == 2) {
 					RoundRect(white, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
+
+				else if (cells[i][j].checker == 4) {
+					RoundRect(whiteQueen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
 			}
 
 		}
 	}
 }
+
 void draw() {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	Rectangle(grey, 0, 0, 1200, 1200);
@@ -107,6 +125,7 @@ void draw() {
 				}
 
 			}
+
 			else {
 				Rectangle(black, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
 				if (field[i][j] == 2) {
@@ -116,8 +135,16 @@ void draw() {
 				if (cells[i][j].checker == 1) {
 					RoundRect(brown, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
+				else if (cells[i][j].checker == 3) {
+					RoundRect(blackQueen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
+
 				else if (cells[i][j].checker == 2) {
 					RoundRect(white, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
+				}
+
+				else if (cells[i][j].checker == 4) {
+					RoundRect(whiteQueen, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd, 90, 90);
 				}
 			}
 
@@ -195,15 +222,34 @@ void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
 		and (turn % 2 == 0)) {
 		field[curPositionY - 1][curPositionX - 1] = 2;
 	}
-
-
-	// Через шашку - вынести в отдельную функцию
 	
 
 	getDeadMoves(curPositionX, curPositionY, turn);
 }
 
+void checkQueen() {
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if (((i == 0 and j == 1) or
+				(i == 0 and j == 3) or
+				(i == 0 and j == 5) or
+				(i == 0 and j == 7)) and
+				turn == 1 and
+				cells[i][j].checker == 2) {
+				cells[i][j].checker += 2;
+			}
 
+			else if (((i == 7 and j == 0) or
+				(i == 7 and j == 2) or
+				(i == 7 and j == 4) or
+				(i == 7 and j == 6)) and
+				turn == 2 and
+				cells[i][j].checker == 1) {
+				cells[i][j].checker += 2;
+			}
+		}
+	}
+}
 
 void move() {
 
@@ -218,8 +264,6 @@ void move() {
 	while (TRUE) {
 		// ВНИЗ - 80, ВВЕРХ - 72, ВПРАВО - 77, ВЛЕВО - 75, ENTER - 13, ESC - 27.
 		int curMove = _getch();
-
-
 
 
 		if (curMove == 80) {
@@ -245,8 +289,6 @@ void move() {
 
 			draw();
 			drawCursor();
-
-
 
 		}
 
@@ -419,6 +461,8 @@ void move() {
 			cin.ignore();
 			break;
 		}
+
+		checkQueen();
 	}
 
 
@@ -438,6 +482,13 @@ int main() {
 	SelectObject(cyan, CreateSolidBrush(RGB(0, 170, 170)));
 	white = GetDC(GetConsoleWindow());
 	SelectObject(white, CreateSolidBrush(RGB(255, 255, 255)));
+
+	whiteQueen = GetDC(GetConsoleWindow());
+	SelectObject(whiteQueen, CreateSolidBrush(RGB(247, 250, 192)));
+
+	blackQueen = GetDC(GetConsoleWindow());
+	SelectObject(blackQueen, CreateSolidBrush(RGB(38, 46, 6)));
+
 	black = GetDC(GetConsoleWindow());
 	SelectObject(black, CreateSolidBrush(RGB(0, 0, 0)));
 
