@@ -198,31 +198,31 @@ bool getDeadMoves(int curPositionX, int curPositionY, int turn) {
 }
 
 void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
-	
+
 	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) <= 7)
 		and (cells[curPositionY + 1][curPositionX - 1].checker == 0)
 		and (turn % 2 == 1)) {
 		field[curPositionY + 1][curPositionX - 1] = 2;
 	}
 
-	if ((curPositionX + 1) <= 7 and ((curPositionY - 1) >= 0) 
+	if ((curPositionX + 1) <= 7 and ((curPositionY - 1) >= 0)
 		and (cells[curPositionY - 1][curPositionX + 1].checker == 0)
 		and (turn % 2 == 0)) {
 		field[curPositionY - 1][curPositionX + 1] = 2;
 	}
 
-	if ((curPositionX + 1) <= 7 and ((curPositionY + 1) <= 7) 
+	if ((curPositionX + 1) <= 7 and ((curPositionY + 1) <= 7)
 		and (cells[curPositionY + 1][curPositionX + 1].checker == 0)
 		and (turn % 2 == 1)) {
 		field[curPositionY + 1][curPositionX + 1] = 2;
 	}
 
-	if ((curPositionX - 1) >= 0 and ((curPositionY - 1) >= 0) 
+	if ((curPositionX - 1) >= 0 and ((curPositionY - 1) >= 0)
 		and (cells[curPositionY - 1][curPositionX - 1].checker == 0)
 		and (turn % 2 == 0)) {
 		field[curPositionY - 1][curPositionX - 1] = 2;
 	}
-	
+
 
 	getDeadMoves(curPositionX, curPositionY, turn);
 }
@@ -413,14 +413,14 @@ void move() {
 						}
 					}
 					field[curPositionY][curPositionX] = 1;
-					
+
 					if (deadMoveX != 0 and deadMoveY != 0) {
 						if (getDeadMoves(curPositionX, curPositionY, turn)) {
 							entered = true;
 							chosenX = curPositionX;
 							chosenY = curPositionY;
 							cells[chosenY][chosenX].isChosen = true;
-							
+
 
 						}
 
@@ -433,7 +433,7 @@ void move() {
 							}
 						}
 					}
-					
+
 					else {
 						if (turn == 1) {
 							turn = 2;
@@ -443,10 +443,10 @@ void move() {
 						}
 					}
 
-					
+
 					draw();
 					drawCursor();
-					
+
 				}
 
 
