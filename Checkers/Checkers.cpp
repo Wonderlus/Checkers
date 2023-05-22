@@ -38,7 +38,9 @@ int field[8][8];
 
 int turn = 2;
 
-
+// Позиция в которой находится шашка, которая будет съедена
+int deadMoveY = 0;
+int deadMoveX = 0;
 
 enum ConsoleColors {
 	Black = 0,
@@ -227,6 +229,114 @@ void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
 	getDeadMoves(curPositionX, curPositionY, turn);
 }
 
+void getPossibleMovesQueen(int curPositionX, int curPositionY, int turn) {
+	int movePositionX = curPositionX;
+	int movePositionY = curPositionY;
+
+	for (int i = 0; i < 8; i++) {
+		if (movePositionX >= 7 or movePositionY >= 7) {
+			break;
+		}
+
+		movePositionX += 1;
+		movePositionY += 1;
+		if ((cells[movePositionY][movePositionX].checker % 2 == turn % 2) and (cells[movePositionY][movePositionX].checker != 0)) {
+			break;
+		}
+
+		if (cells[movePositionY][movePositionX].checker == 0) {
+			field[movePositionY][movePositionX] = 2;
+		}
+		
+		if ((cells[movePositionY][movePositionX].checker % 2 != turn % 2)
+			and deadMoveX == 0 and deadMoveY == 0 
+			and cells[movePositionY][movePositionX].checker != 0) {
+			deadMoveX = movePositionX;
+			deadMoveY = movePositionY;
+		}
+	}
+
+	movePositionX = curPositionX;
+	movePositionY = curPositionY;
+	for (int i = 0; i < 8; i++) {
+		if (movePositionX <= 0 or movePositionY <= 0) {
+			break;
+		}
+
+		
+
+		movePositionX -= 1;
+		movePositionY -= 1;
+		if ((cells[movePositionY][movePositionX].checker % 2 == turn % 2) and (cells[movePositionY][movePositionX].checker != 0)) {
+			break;
+		}
+		if (cells[movePositionY][movePositionX].checker == 0) {
+			field[movePositionY][movePositionX] = 2;
+		}
+
+		if ((cells[movePositionY][movePositionX].checker % 2 != turn % 2)
+			and deadMoveX == 0 and deadMoveY == 0
+			and cells[movePositionY][movePositionX].checker != 0) {
+			deadMoveX = movePositionX;
+			deadMoveY = movePositionY;
+		}
+	}
+
+	movePositionX = curPositionX;
+	movePositionY = curPositionY;
+	for (int i = 0; i < 8; i++) {
+		if ( movePositionY >= 7 or movePositionX <= 0) {
+			break;
+		}
+
+		
+
+		movePositionX -= 1;
+		movePositionY += 1;
+		if ((cells[movePositionY][movePositionX].checker % 2 == turn % 2) and (cells[movePositionY][movePositionX].checker != 0)) {
+			break;
+		}
+		if (cells[movePositionY][movePositionX].checker == 0) {
+			field[movePositionY][movePositionX] = 2;
+		}
+
+		if ((cells[movePositionY][movePositionX].checker % 2 != turn % 2)
+			and deadMoveX == 0 and deadMoveY == 0
+			and cells[movePositionY][movePositionX].checker != 0) {
+			deadMoveX = movePositionX;
+			deadMoveY = movePositionY;
+		}
+	}
+
+	movePositionX = curPositionX;
+	movePositionY = curPositionY;
+	for (int i = 0; i < 8; i++) {
+
+		if (movePositionX >= 7 or movePositionY <= 0) {
+			break;
+		}
+
+		
+
+		movePositionX += 1;
+		movePositionY -= 1;
+		if ((cells[movePositionY][movePositionX].checker % 2 == turn % 2) and (cells[movePositionY][movePositionX].checker != 0)) {
+			break;
+		}
+		if (cells[movePositionY][movePositionX].checker == 0) {
+			field[movePositionY][movePositionX] = 2;
+		}
+
+		if ((cells[movePositionY][movePositionX].checker % 2 != turn % 2)
+			and deadMoveX == 0 and deadMoveY == 0
+			and cells[movePositionY][movePositionX].checker != 0) {
+			deadMoveX = movePositionX;
+			deadMoveY = movePositionY;
+		}
+	}
+
+}
+
 void checkQueen() {
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
@@ -250,6 +360,16 @@ void checkQueen() {
 		}
 	}
 }
+
+
+
+// Игра компьютера
+void moveComputer() {
+	
+}
+
+
+
 
 void move() {
 
@@ -369,12 +489,21 @@ void move() {
 
 		if (curMove == 13) {
 
-			if (!entered and cells[curPositionY][curPositionX].checker == turn) {
+			if (!entered and cells[curPositionY][curPositionX].checker % 2 == turn % 2 and cells[curPositionY][curPositionX].checker != 0) {
 				entered = true;
 				chosenX = curPositionX;
 				chosenY = curPositionY;
 				cells[chosenY][chosenX].isChosen = true;
-				getPossibleMoves(curPositionX, curPositionY, turn);
+				if (cells[chosenY][chosenX].checker == 1 or cells[chosenY][chosenX].checker == 2) {
+					getPossibleMoves(curPositionX, curPositionY, turn);
+				}
+
+				else if (cells[chosenY][chosenX].checker == 3 or cells[chosenY][chosenX].checker == 4) {
+					deadMoveX = 0;
+					deadMoveY = 0;
+					getPossibleMovesQueen(curPositionX, curPositionY, turn);
+				}
+				
 				draw();
 				drawCursor();
 
@@ -396,13 +525,38 @@ void move() {
 				}
 
 				else if (field[curPositionY][curPositionX] == 3) {
+					
 
-					int deadMoveY = (chosenY - curPositionY) / 2;
-					int deadMoveX = (chosenX - curPositionX) / 2;
+					if (cells[chosenY][chosenX].checker == 1 or cells[chosenY][chosenX].checker == 2) {
+						deadMoveY = (chosenY - curPositionY) / 2;
+						deadMoveX = (chosenX - curPositionX) / 2;
 
-					if (deadMoveY != 0 and deadMoveX != 0) {
-						cells[chosenY - deadMoveY][chosenX - deadMoveX].checker = 0;
+						if (deadMoveY != 0 and deadMoveX != 0) {
+							cells[chosenY - deadMoveY][chosenX - deadMoveX].checker = 0;
+						}
 					}
+
+					else if (cells[chosenY][chosenX].checker == 3 or cells[chosenY][chosenX].checker == 4) {
+	
+						if ((((curPositionY - deadMoveY) < 0 == (curPositionY - chosenY) < 0)
+							and ((curPositionX - deadMoveX) < 0 == (curPositionX - chosenX) < 0))
+							or
+							(((curPositionY - deadMoveY) > 0 == (curPositionY - chosenY) > 0)
+								and ((curPositionX - deadMoveX) > 0 == (curPositionX - chosenX) > 0))
+							or
+							(((curPositionY - deadMoveY) < 0 == (curPositionY - chosenY) < 0)
+								and ((curPositionX - deadMoveX) > 0 == (curPositionX - chosenX) > 0))
+							or
+							(((curPositionY - deadMoveY) > 0 == (curPositionY - chosenY) > 0)
+								and ((curPositionX - deadMoveX) < 0 == (curPositionX - chosenX) < 0))
+
+							)
+							cells[deadMoveY][deadMoveX].checker = 0;
+					}
+
+
+
+					
 					cells[curPositionY][curPositionX].checker = cells[chosenY][chosenX].checker;
 					cells[chosenY][chosenX].checker = 0;
 					entered = false;
@@ -453,6 +607,8 @@ void move() {
 
 
 			}
+			
+			checkQueen();
 
 		}
 
@@ -462,7 +618,7 @@ void move() {
 			break;
 		}
 
-		checkQueen();
+		
 	}
 
 
@@ -487,7 +643,7 @@ int main() {
 	SelectObject(whiteQueen, CreateSolidBrush(RGB(247, 250, 192)));
 
 	blackQueen = GetDC(GetConsoleWindow());
-	SelectObject(blackQueen, CreateSolidBrush(RGB(38, 46, 6)));
+	SelectObject(blackQueen, CreateSolidBrush(RGB(97, 76, 60)));
 
 	black = GetDC(GetConsoleWindow());
 	SelectObject(black, CreateSolidBrush(RGB(0, 0, 0)));
@@ -547,8 +703,8 @@ int main() {
 		for (int j = 0; j < 8; j++) {
 
 			if ((i + j) % 2 == 1) {
-				cells[i][j].checker = 1;
-				cells[7 - i][7 - j].checker = 2;
+				cells[i][j].checker = 3;
+				cells[7 - i][7 - j].checker = 4;
 			}
 			else {
 				cells[i][j].checker = 0;
