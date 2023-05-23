@@ -1,2 +1,4 @@
 ﻿  Checkers.cpp
+E:\Coding\C++\Ispu\Checkers\Checkers\Checkers.cpp(518): warning C4715: findBestMove: значение возвращается не при всех путях выполнения
+E:\Coding\C++\Ispu\Checkers\Checkers\Checkers.cpp(543): warning C4715: countBestMove: значение возвращается не при всех путях выполнения
   Checkers.vcxproj -> E:\Coding\C++\Ispu\Checkers\x64\Debug\Checkers.exe

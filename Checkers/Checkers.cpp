@@ -35,12 +35,17 @@ Checker checkers[8][8];
 // 5 - выбранная клетка
 int field[8][8];
 
-
+// Текущий ход
 int turn = 2;
+
 
 // Позиция в которой находится шашка, которая будет съедена
 int deadMoveY = 0;
 int deadMoveX = 0;
+
+// Ход компьютера
+int computerMoveY = 0;
+int computerMoveX = 0;
 
 enum ConsoleColors {
 	Black = 0,
@@ -158,8 +163,8 @@ void draw() {
 bool getDeadMoves(int curPositionX, int curPositionY, int turn) {
 	bool flag = false;
 	if ((curPositionX - 2) >= 0 and ((curPositionY + 2) <= 7)
-		and (cells[curPositionY + 1][curPositionX - 1].checker != turn)
-		and (cells[curPositionY + 1][curPositionX - 1].checker > 0)
+		and (cells[curPositionY + 1][curPositionX - 1].checker % 2 != turn % 2)
+		and (cells[curPositionY + 1][curPositionX - 1].checker != 0)
 		and (turn > 0)
 		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)
 		) {
@@ -361,11 +366,220 @@ void checkQueen() {
 	}
 }
 
+int findBestMove(int curPositionX, int curPositionY, int turn, int n) {
+	int plusScore = 0;
+
+	// Берем дамку
+	if ((curPositionX - 2) >= 0 and ((curPositionY + 2) <= 7)
+		and (cells[curPositionY + 1][curPositionX - 1].checker == turn % 2 + 3)
+		and (cells[curPositionY + 1][curPositionX - 1].checker != 0)
+		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)
+		) {
+		plusScore = 20;
+		if (n == 0) {
+			computerMoveY = curPositionY + 2;
+			computerMoveX = curPositionX - 2;
+		}
+	}
+
+	else if ((curPositionX + 2) >= 0 and ((curPositionY + 2) <= 7)
+		and (cells[curPositionY + 1][curPositionX + 1].checker == turn % 2 + 3)
+		and (cells[curPositionY + 1][curPositionX + 1].checker != 0)
+		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)
+		) {
+		plusScore = 20;
+		if (n == 0) {
+			computerMoveY = curPositionY + 2;
+			computerMoveX = curPositionX + 2;
+		}
+	}
+
+	else if ((curPositionX - 2) >= 0 and ((curPositionY - 2) <= 7)
+		and (cells[curPositionY - 1][curPositionX - 1].checker == turn % 2 + 3)
+		and (cells[curPositionY - 1][curPositionX - 1].checker != 0)
+		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)
+		) {
+		plusScore = 20;
+		if (n == 0) {
+			computerMoveY = curPositionY - 2;
+			computerMoveX = curPositionX - 2;
+		}
+	}
+
+	else if ((curPositionX + 2) >= 0 and ((curPositionY - 2) <= 7)
+		and (cells[curPositionY - 1][curPositionX + 1].checker == turn % 2 + 3)
+		and (cells[curPositionY - 1][curPositionX + 1].checker != 0)
+		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)
+		) {
+		plusScore = 20;
+		if (n == 0) {
+			computerMoveY = curPositionY - 2;
+			computerMoveX = curPositionX + 2;
+		}
+	}
+
+	// Берем обычную шашку
+	if ((curPositionX - 2) >= 0 and ((curPositionY + 2) <= 7)
+		and (cells[curPositionY + 1][curPositionX - 1].checker == turn % 2 + 1)
+		and (cells[curPositionY + 1][curPositionX - 1].checker != 0)
+		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)
+		) {
+		plusScore = 5;
+		if (n == 0) {
+			computerMoveY = curPositionY + 2;
+			computerMoveX = curPositionX - 2;
+		}
+	}
+
+	else if ((curPositionX + 2) >= 0 and ((curPositionY + 2) <= 7)
+		and (cells[curPositionY + 1][curPositionX + 1].checker == turn % 2 + 1)
+		and (cells[curPositionY + 1][curPositionX + 1].checker != 0)
+		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)
+		) {
+		plusScore = 5;
+		if (n == 0) {
+			computerMoveY = curPositionY + 2;
+			computerMoveX = curPositionX + 2;
+		}
+	}
+
+	else if ((curPositionX - 2) >= 0 and ((curPositionY - 2) <= 7)
+		and (cells[curPositionY - 1][curPositionX - 1].checker == turn % 2 + 1)
+		and (cells[curPositionY - 1][curPositionX - 1].checker != 0)
+		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)
+		) {
+		plusScore = 5;
+		if (n == 0) {
+			computerMoveY = curPositionY - 2;
+			computerMoveX = curPositionX - 2;
+		}
+	}
+
+	else if ((curPositionX + 2) >= 0 and ((curPositionY - 2) <= 7)
+		and (cells[curPositionY - 1][curPositionX + 1].checker == turn % 2 + 1)
+		and (cells[curPositionY - 1][curPositionX + 1].checker != 0)
+		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)
+		) {
+		plusScore = 5;
+		if (n == 0) {
+			computerMoveY = curPositionY - 2;
+			computerMoveX = curPositionX + 2;
+		}
+	}
+
+	// Обычный ход
+	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) <= 7)
+		and (cells[curPositionY + 1][curPositionX - 1].checker == 0)
+		and turn == 1) {
+		plusScore = 1;
+		if (n == 0) {
+			computerMoveY = curPositionY + 1;
+			computerMoveX = curPositionX - 1;
+		}
+	}
+
+	if ((curPositionX + 1) <= 7 and ((curPositionY - 1) >= 0)
+		and (cells[curPositionY - 1][curPositionX + 1].checker == 0)
+		and turn == 2) {
+		plusScore = 1;
+		if (n == 0) {
+			computerMoveY = curPositionY - 1;
+			computerMoveX = curPositionX + 1;
+		}
+	}
+
+	if ((curPositionX + 1) <= 7 and ((curPositionY + 1) <= 7)
+		and (cells[curPositionY + 1][curPositionX + 1].checker == 0)
+		and turn == 1) {
+		plusScore = 1;
+		if (n == 0) {
+			computerMoveY = curPositionY + 1;
+			computerMoveX = curPositionX + 1;
+		}
+	}
+
+	if ((curPositionX - 1) >= 0 and ((curPositionY - 1) >= 0)
+		and (cells[curPositionY - 1][curPositionX - 1].checker == 0)
+		and turn == 2) {
+		plusScore = 1;
+		if (n == 0) {
+			computerMoveY = curPositionY - 1;
+			computerMoveX = curPositionX - 1;
+		}
+	}
+
+
+	if (turn == 2) {
+		return plusScore;
+	}
+	else if (turn == 1) {
+		return -plusScore;
+	}
+}
+
+
+
+
+
+
+
+// 3 полухода
+int countBestMove(int curPositionX, int curPositionY, int n, int turn, int score) {
+	if (n == 3) {
+		return score;
+	}
+	
+	score += findBestMove(curPositionX, curPositionY, turn, n);
+	
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if (cells[i][j].checker != 0) {
+				return countBestMove(j, i, n + 1, turn % 2 + 1, score);
+			}
+			
+		}
+	}
+	
+}
 
 
 // Игра компьютера
 void moveComputer() {
+	int scoreBest = -1;
+	int bestMoveY = 0;
+	int bestMoveX = 0;
+	int curPositionY = 0;
+	int curPositionX = 0;
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			int score = 0;
+			if (cells[i][j].checker % 2 == turn % 2 and cells[i][j].checker != 0) {
+				score = countBestMove(j, i, 0, turn, score);
+				if (score > scoreBest) {
+					scoreBest = score;
+					bestMoveY = computerMoveY;
+					bestMoveX = computerMoveX;
+					curPositionY = i;
+					curPositionX = j;
+				}
+
+			}
+		}
+	}
 	
+	cout << bestMoveY << " " << bestMoveX << endl;
+	cout << curPositionY << " " << curPositionX << endl;
+	deadMoveY = (curPositionY - bestMoveY) / 2;
+	deadMoveX = (curPositionX - bestMoveX) / 2;
+
+	if (deadMoveX != 0 and deadMoveY != 0) {
+		cells[curPositionY - deadMoveY][curPositionX - deadMoveX].checker = 0;
+	}
+	
+	cells[bestMoveY][bestMoveX].checker = cells[curPositionY][curPositionX].checker;
+	cells[curPositionY][curPositionX].checker = 0;
+
+	turn = turn % 2 + 1;
 }
 
 
@@ -383,6 +597,10 @@ void move() {
 
 	while (TRUE) {
 		// ВНИЗ - 80, ВВЕРХ - 72, ВПРАВО - 77, ВЛЕВО - 75, ENTER - 13, ESC - 27.
+
+		if (turn == 2) {
+			break;
+		}
 		int curMove = _getch();
 
 
@@ -579,22 +797,14 @@ void move() {
 						}
 
 						else {
-							if (turn == 1) {
-								turn = 2;
-							}
-							else if (turn == 2) {
-								turn = 1;
-							}
+							turn = turn % 2 + 1;
+							
 						}
 					}
 
 					else {
-						if (turn == 1) {
-							turn = 2;
-						}
-						else if (turn == 2) {
-							turn = 1;
-						}
+						turn = turn % 2 + 1;
+						
 					}
 
 
@@ -703,8 +913,8 @@ int main() {
 		for (int j = 0; j < 8; j++) {
 
 			if ((i + j) % 2 == 1) {
-				cells[i][j].checker = 3;
-				cells[7 - i][7 - j].checker = 4;
+				cells[i][j].checker = 1;
+				cells[7 - i][7 - j].checker = 2;
 			}
 			else {
 				cells[i][j].checker = 0;
@@ -719,18 +929,21 @@ int main() {
 
 
 	while (TRUE) {
-
-		move();
+		if (turn == 1) {
+			move();
+		}
+		else if (turn == 2) {
+			moveComputer();
+		}
+		
 
 	}
 }
 
 // оценка ходов
-// 0 - обычный ход
-// 1 - ход на край доски
-// 2 - защита от взятия
+// 1 - обычный ход
+// 2 - ход на край доски
 // 5 - взятие, суммирование при взятии нескольких шашек
 // 10 - получение дамки
 // 20 - взятие дамки
-// 
 // 
