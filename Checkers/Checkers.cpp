@@ -47,6 +47,9 @@ int deadMoveX = 0;
 int computerMoveY = 0;
 int computerMoveX = 0;
 
+// Выбор режима игры
+int choiceGame = 0;
+
 enum ConsoleColors {
 	Black = 0,
 	White = 1,
@@ -61,6 +64,11 @@ enum ConsoleColors {
 COORD dot;
 
 HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron, darkGreen, whiteQueen, blackQueen;
+
+
+void drawInterface() {
+
+}
 
 
 
@@ -275,6 +283,7 @@ void getPossibleMovesQueen(int curPositionX, int curPositionY, int turn) {
 		if ((cells[movePositionY][movePositionX].checker % 2 == turn % 2) and (cells[movePositionY][movePositionX].checker != 0)) {
 			break;
 		}
+
 		if (cells[movePositionY][movePositionX].checker == 0) {
 			field[movePositionY][movePositionX] = 2;
 		}
@@ -567,8 +576,6 @@ void moveComputer() {
 		}
 	}
 	
-	cout << bestMoveY << " " << bestMoveX << endl;
-	cout << curPositionY << " " << curPositionX << endl;
 	deadMoveY = (curPositionY - bestMoveY) / 2;
 	deadMoveX = (curPositionX - bestMoveX) / 2;
 
@@ -582,7 +589,17 @@ void moveComputer() {
 	turn = turn % 2 + 1;
 }
 
+bool checkWin() {
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if (cells[i][j].checker != 0 and cells[i][j].checker != 1 and cells[i][j].checker != 3) {
+				return false;
+			}
+		}
+	}
 
+	return true;
+}
 
 
 void move() {
@@ -834,8 +851,19 @@ void move() {
 
 }
 
-int main() {
+void drawWin() {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	dot.X = 50;
+	dot.Y = 20;
+	SetConsoleCursorPosition(hConsole, dot);
+	cout << "Вы выиграли!";
+	system("color F0");
+}
 
+int main() {
+	setlocale(LC_ALL, "Russian");
+	SetConsoleOutputCP(1251);
+	SetConsoleCP(1251);
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	HWND hcon = GetConsoleWindow();
@@ -913,15 +941,16 @@ int main() {
 		for (int j = 0; j < 8; j++) {
 
 			if ((i + j) % 2 == 1) {
-				cells[i][j].checker = 1;
-				cells[7 - i][7 - j].checker = 2;
+				cells[i][j].checker = 3;
+				// cells[7 - i][7 - j].checker = 2;
+
 			}
 			else {
 				cells[i][j].checker = 0;
 			}
 		}
 	}
-
+	cells[7][2].checker = 2;
 
 
 	draw();
@@ -929,8 +958,13 @@ int main() {
 
 
 	while (TRUE) {
+		if (checkWin()) {
+			drawWin();
+			
+		}
 		if (turn == 1) {
 			move();
+			
 		}
 		else if (turn == 2) {
 			moveComputer();
