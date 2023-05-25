@@ -64,6 +64,8 @@ enum ConsoleColors {
 	Brown = 7,
 };
 
+int mustEat = false;
+
 COORD dot;
 
 HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron, darkGreen, whiteQueen, blackQueen;
@@ -177,6 +179,7 @@ bool getDeadMoves(int curPositionX, int curPositionY, int turn) {
 		and (cells[curPositionY + 2][curPositionX - 2].checker == 0)
 		) {
 		flag = true;
+		mustEat = true;
 		field[curPositionY + 2][curPositionX - 2] = 2;
 	}
 
@@ -187,6 +190,7 @@ bool getDeadMoves(int curPositionX, int curPositionY, int turn) {
 		and (cells[curPositionY - 2][curPositionX + 2].checker == 0)
 		) {
 		flag = true;
+		mustEat = true;
 		field[curPositionY - 2][curPositionX + 2] = 2;
 	}
 
@@ -197,6 +201,7 @@ bool getDeadMoves(int curPositionX, int curPositionY, int turn) {
 		and (cells[curPositionY + 2][curPositionX + 2].checker == 0)
 		) {
 		flag = true;
+		mustEat = true;
 		field[curPositionY + 2][curPositionX + 2] = 2;
 	}
 
@@ -207,6 +212,7 @@ bool getDeadMoves(int curPositionX, int curPositionY, int turn) {
 		and (cells[curPositionY - 2][curPositionX - 2].checker == 0)
 		) {
 		flag = true;
+		mustEat = true;
 		field[curPositionY - 2][curPositionX - 2] = 2;
 	}
 	return flag;
@@ -214,32 +220,37 @@ bool getDeadMoves(int curPositionX, int curPositionY, int turn) {
 
 void getPossibleMoves(int curPositionX, int curPositionY, int turn) {
 
-	if ((curPositionX - 1) >= 0 and ((curPositionY + 1) <= 7)
-		and (cells[curPositionY + 1][curPositionX - 1].checker == 0)
-		and (turn % 2 == 1)) {
-		field[curPositionY + 1][curPositionX - 1] = 2;
-	}
-
-	if ((curPositionX + 1) <= 7 and ((curPositionY - 1) >= 0)
-		and (cells[curPositionY - 1][curPositionX + 1].checker == 0)
-		and (turn % 2 == 0)) {
-		field[curPositionY - 1][curPositionX + 1] = 2;
-	}
-
-	if ((curPositionX + 1) <= 7 and ((curPositionY + 1) <= 7)
-		and (cells[curPositionY + 1][curPositionX + 1].checker == 0)
-		and (turn % 2 == 1)) {
-		field[curPositionY + 1][curPositionX + 1] = 2;
-	}
-
-	if ((curPositionX - 1) >= 0 and ((curPositionY - 1) >= 0)
-		and (cells[curPositionY - 1][curPositionX - 1].checker == 0)
-		and (turn % 2 == 0)) {
-		field[curPositionY - 1][curPositionX - 1] = 2;
-	}
-
-
 	getDeadMoves(curPositionX, curPositionY, turn);
+
+	if (not mustEat) {
+		if ((curPositionX - 1) >= 0 and ((curPositionY + 1) <= 7)
+			and (cells[curPositionY + 1][curPositionX - 1].checker == 0)
+			and (turn % 2 == 1)) {
+			field[curPositionY + 1][curPositionX - 1] = 2;
+		}
+
+		if ((curPositionX + 1) <= 7 and ((curPositionY - 1) >= 0)
+			and (cells[curPositionY - 1][curPositionX + 1].checker == 0)
+			and (turn % 2 == 0)) {
+			field[curPositionY - 1][curPositionX + 1] = 2;
+		}
+
+		if ((curPositionX + 1) <= 7 and ((curPositionY + 1) <= 7)
+			and (cells[curPositionY + 1][curPositionX + 1].checker == 0)
+			and (turn % 2 == 1)) {
+			field[curPositionY + 1][curPositionX + 1] = 2;
+		}
+
+		if ((curPositionX - 1) >= 0 and ((curPositionY - 1) >= 0)
+			and (cells[curPositionY - 1][curPositionX - 1].checker == 0)
+			and (turn % 2 == 0)) {
+			field[curPositionY - 1][curPositionX - 1] = 2;
+		}
+	}
+	
+
+
+	
 }
 
 void getPossibleMovesQueen(int curPositionX, int curPositionY, int turn) {
@@ -754,7 +765,7 @@ void move() {
 						}
 					}
 					field[curPositionY][curPositionX] = 1;
-
+					mustEat = false;
 					draw();
 					drawCursor();
 				}
@@ -824,7 +835,7 @@ void move() {
 						
 					}
 
-
+					mustEat = false;
 					draw();
 					drawCursor();
 
@@ -879,6 +890,7 @@ void drawInterface() {
 	CursorInfo.bVisible = FALSE;
 	SetConsoleCursorInfo(hConsole, &CursorInfo);
 
+	SetLayeredWindowAttributes(console, RGB(255, 255, 255), 236, LWA_ALPHA);
 	Rectangle(grey, 0, 0, 1200, 1200);
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
@@ -894,12 +906,31 @@ void drawInterface() {
 		}
 	}
 
-	SetLayeredWindowAttributes(console, RGB(255, 255, 255), 236, LWA_ALPHA);
+	
 
 	
 	while (TRUE) {
-		
-		
+		dot.Y = 0;
+		dot.X = 5;
+		SetConsoleCursorPosition(hConsole, dot);
+		SetConsoleTextAttribute(hConsole, 15);
+		cout << "<< Шашки >>";
+		Rectangle(grey, 0, 0, 1200, 1200);
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				if ((i + j) % 2 == 0) {
+					Rectangle(yellow, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
+
+				}
+
+				else {
+					Rectangle(black, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
+				}
+
+			}
+		}
+
+		SetLayeredWindowAttributes(console, RGB(255, 255, 255), 236, LWA_ALPHA);
 
 
 		if (choiceGame == 0) {
