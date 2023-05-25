@@ -50,6 +50,9 @@ int computerMoveX = 0;
 // Выбор режима игры
 int choiceGame = 0;
 
+// Выбранный режим игры
+int chosenGame = 0;
+
 enum ConsoleColors {
 	Black = 0,
 	White = 1,
@@ -66,9 +69,6 @@ COORD dot;
 HDC cyan, white, black, grey, blue, red, yellow, brown, silver, iron, darkGreen, whiteQueen, blackQueen;
 
 
-void drawInterface() {
-
-}
 
 
 
@@ -615,7 +615,7 @@ void move() {
 	while (TRUE) {
 		// ВНИЗ - 80, ВВЕРХ - 72, ВПРАВО - 77, ВЛЕВО - 75, ENTER - 13, ESC - 27.
 
-		if (turn == 2) {
+		if (turn == 2 and chosenGame == 0) {
 			break;
 		}
 		int curMove = _getch();
@@ -852,13 +852,111 @@ void move() {
 }
 
 void drawWin() {
+	
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	HWND hcon = GetConsoleWindow();
 	dot.X = 50;
 	dot.Y = 20;
 	SetConsoleCursorPosition(hConsole, dot);
-	cout << "Вы выиграли!";
+	
 	system("color F0");
+	if (chosenGame == 1) {
+		cout << "Выиграл белый игрок";
+	}
+	else if (chosenGame == 0) {
+		cout << "Вы выиграли!";
+	}
+	
 }
+
+void drawInterface() {
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	HWND console = GetConsoleWindow();
+	HDC hdc = GetDC(console);
+	
+	CONSOLE_CURSOR_INFO CursorInfo;
+	GetConsoleCursorInfo(hConsole, &CursorInfo);
+	CursorInfo.bVisible = FALSE;
+	SetConsoleCursorInfo(hConsole, &CursorInfo);
+
+	Rectangle(grey, 0, 0, 1200, 1200);
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if ((i + j) % 2 == 0) {
+				Rectangle(yellow, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
+
+			}
+
+			else {
+				Rectangle(black, cells[i][j].x, cells[i][j].y, cells[i][j].xEnd, cells[i][j].yEnd);
+			}
+
+		}
+	}
+
+	SetLayeredWindowAttributes(console, RGB(255, 255, 255), 236, LWA_ALPHA);
+
+	
+	while (TRUE) {
+		
+		
+
+
+		if (choiceGame == 0) {
+			dot.Y = 1;
+			dot.X = 0;
+			SetConsoleCursorPosition(hConsole, dot);
+			SetConsoleTextAttribute(hConsole, 4);
+			cout << "Игра против компьютера";
+			dot.Y = 2;
+			dot.X = 0;
+			SetConsoleCursorPosition(hConsole, dot);
+			SetConsoleTextAttribute(hConsole, 15);
+			cout << "Игра против другого игрока";
+
+		}
+		if (choiceGame == 1) {
+			dot.Y = 1;
+			dot.X = 0;
+			SetConsoleCursorPosition(hConsole, dot);
+			SetConsoleTextAttribute(hConsole, 15);
+			cout << "Игра против компьютера";
+			dot.Y = 2;
+			dot.X = 0;
+			SetConsoleCursorPosition(hConsole, dot);
+			SetConsoleTextAttribute(hConsole, 4);
+			cout << "Игра против другого игрока";
+		}
+
+		if (chosenGame != 0) {
+			break;
+		}
+
+		int curMove = _getch();
+		if (curMove == 80) {
+			choiceGame = 1;
+			
+
+		}
+		else if (curMove == 72) {
+			choiceGame = 0;
+		}
+			
+
+		else if (curMove == 13) {
+			chosenGame = choiceGame;
+			break;
+		}
+		
+		SetConsoleCursorPosition(hConsole, dot);
+
+		
+
+		
+	}
+	
+}
+
 
 int main() {
 	setlocale(LC_ALL, "Russian");
@@ -941,8 +1039,8 @@ int main() {
 		for (int j = 0; j < 8; j++) {
 
 			if ((i + j) % 2 == 1) {
-				cells[i][j].checker = 3;
-				// cells[7 - i][7 - j].checker = 2;
+				cells[i][j].checker = 1;
+				cells[7 - i][7 - j].checker = 2;
 
 			}
 			else {
@@ -950,24 +1048,28 @@ int main() {
 			}
 		}
 	}
-	cells[7][2].checker = 2;
+
+	/*cells[7][2].checker = 2;*/
 
 
+	drawInterface();
+	system("cls");
 	draw();
 	drawCursor();
-
-
+	SetLayeredWindowAttributes(GetConsoleWindow(), RGB(255, 255, 255), 255, LWA_ALPHA);
 	while (TRUE) {
+		
 		if (checkWin()) {
 			drawWin();
 			
 		}
-		if (turn == 1) {
-			move();
-			
-		}
-		else if (turn == 2) {
+		
+		else if (turn == 2 and chosenGame == 0) {
 			moveComputer();
+		}
+
+		else {
+			move();
 		}
 		
 
